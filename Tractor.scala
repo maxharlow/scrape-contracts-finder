@@ -29,7 +29,7 @@ object Tractor extends App {
   val bodies = for {
     file <- files
     data = file.apply()
-    xml <- XML.loadString(data.splitAt(data.indexOf("<?xml"))._2)
+    xml <- XML.loadString(data.dropWhile(_ != '<'))
     body <- xml \ "NOTICES" \ "_"
   }
   yield body
