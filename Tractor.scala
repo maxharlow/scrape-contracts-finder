@@ -52,6 +52,15 @@ object Tractor extends App {
       "orgContact" -> (award \ "FD_CONTRACT_AWARD" \ "CONTRACTING_AUTHORITY_INFORMATION" \ "NAME_ADDRESSES_CONTACT_CONTRACT_AWARD" \ "CA_CE_CONCESSIONAIRE_PROFILE" \ "E_MAIL").text,
       "title" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "TITLE_CONTRACT").text,
       "description" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "SHORT_CONTRACT_DESCRIPTION").text,
+      "awardeeName" -> (award \ "FD_CONTRACT_AWARD" \ "AWARD_OF_CONTRACT" \ "ECONOMIC_OPERATOR_NAME_ADDRESS" \ "CONTACT_DATA_WITHOUT_RESPONSIBLE_NAME" \ "ORGANISATION").map(_.text).mkString(";"),
+      "awardeeCompanyNumber" -> (award \ "FD_CONTRACT_AWARD" \ "AWARD_OF_CONTRACT" \ "COMPANIES_HOUSE_URI_SUFFIX").map(_.text).mkString(";"),
+      "awardDate" -> {
+        val datesValues = award \ "FD_CONTRACT_AWARD" \ "AWARD_OF_CONTRACT" \ "CONTRACT_AWARD_DATE"
+        val dates = datesValues map { dateValue =>
+          if (dateValue.isEmpty) "" else (dateValue \ "DAY").text + "/" + (dateValue \ "MONTH").text + "/" + (dateValue \ "YEAR").text
+        }
+        dates.mkString(";")
+      },
       "noticeType" -> (award \ "SYSTEM" \ "NOTICE_TYPE_FRIENDLY_NAME").text,
       "region" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "LOCATION_NUTS" \ "SITE_OR_LOCATION" \ "LABEL" \ "p").head.text,
       "noticeState" -> (award \ "SYSTEM" \ "NOTICE_STATE").text,
