@@ -1,11 +1,15 @@
 import java.io.File
 import scala.xml.XML
 import scala.collection.immutable.ListMap
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import dispatch._
 import dispatch.Defaults._
 import com.github.tototoshi.csv.CSVWriter
 
 object Tractor extends App {
+
+  val http = Http.configure(_ setFollowRedirects true)
 
   println("""
     ,---,
@@ -15,32 +19,63 @@ object Tractor extends App {
     \__/````\_/  \
   """)
 
-  val http = Http.configure(_ setFollowRedirects true)
+  run()
 
-  val files = for {
-    year <- 2011 to 2014
-    month <- 1 to 12
+  def run() {
+    val awardsCsv = CSVWriter.open(new File("awards.csv"))
+    val headers = List(
+      "noticeId",
+      "referenceNumber",
+      "publishedDate",
+      "valueCurrency",
+      "value",
+      "status",
+      "orgName",
+      "orgContact",
+      "title",
+      "description",
+      "awardeeName",
+      "awardeeCompanyNumber",
+      "awardDate",
+      "noticeType",
+      "region",
+      "noticeState",
+      "noticeStateChangeDate",
+      "classification",
+      "numDocs")
+    awardsCsv.writeRow(headers)
+    for {
+      year <- 2011 to 2014
+      month <- 1 to 12
+    }
+    yield for (data <- retrieve(year, month))
+    yield for (item <- process(data)) {
+      val selected = select(item)
+      awardsCsv.writeRow(selected.values.toSeq)
+    }
+    awardsCsv.close()
   }
-  yield http {
+
+  def retrieve(year: Int, month: Int): Future[String] = {
     val monthFormatted = "%02d".format(month)
-    url(s"http://www.contractsfinder.businesslink.gov.uk/public_files/Notices/Monthly/notices_${year}_${monthFormatted}.xml") OK as.String
+    val response = http {
+      url(s"http://www.contractsfinder.businesslink.gov.uk/public_files/Notices/Monthly/notices_${year}_${monthFormatted}.xml") OK as.String
+    }
+    Await.ready(response, 1 minute)
+    response
   }
 
-  val bodies = for {
-    file <- files
-    data = file.apply()
-    xml <- XML.loadString(data.dropWhile(_ != '<'))
-    body <- xml \ "NOTICES" \ "_"
-  }
-  yield body
-
-  val notices = bodies.flatten
-
-  val awards = notices filter { notice =>
-    notice.label == "CONTRACT_AWARD"
+  def process(data: String): Seq[xml.Node] = {
+    for {
+      xml <- XML.loadString(data.dropWhile(_ != '<'))
+      body <- xml \ "NOTICES" \ "_"
+      awards <- body.filter(_.label == "CONTRACT_AWARD")
+      award <- awards
+    }
+    yield awards
   }
 
-  val awardsData = awards map { award =>
+  def select(award: xml.Node): ListMap[String, String] = {
     ListMap(
       "noticeId" -> (award \ "SYSTEM" \ "NOTICE_ID").text,
       "referenceNumber" -> (award \ "FD_CONTRACT_AWARD" \ "PROCEDURE_DEFINITION_CONTRACT_AWARD_NOTICE" \ "ADMINISTRATIVE_INFORMATION_CONTRACT_AWARD" \ "FILE_REFERENCE_NUMBER").text,
@@ -69,12 +104,5 @@ object Tractor extends App {
       "numDocs" -> (award \ "FD_CONTRACT_AWARD" \ "DOCUMENTS" \ "_").length.toString
     )
   }
-
-  val awardsCsv = CSVWriter.open(new File("awards.csv"))
-  awardsCsv.writeRow(awardsData.head.keySet.toSeq)
-  awardsData foreach { award =>
-    awardsCsv.writeRow(award.values.toSeq)
-  }
-  awardsCsv.close()
 
 }
