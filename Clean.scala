@@ -7,7 +7,7 @@ import dispatch._
 import dispatch.Defaults._
 import com.github.tototoshi.csv.CSVWriter
 
-object Tractor extends App {
+object Clean extends App {
 
   val http = Http.configure(_ setFollowRedirects true)
 
