@@ -46,8 +46,7 @@ object Load extends App {
       FOREACH(name IN (CASE WHEN line.awardeeCompanyNumber = '' THEN [line.awardeeName] ELSE [] END) |
       MERGE (gd:GovDepartment {name: line.orgName}) ON CREATE SET
         gd.orgContact = line.orgContact
-      MERGE (a:Organisation {name: name}) ON CREATE SET
-        a.companyNumber = line.awardeeCompanyNumber
+      MERGE (a:Organisation {name: name})
       CREATE (gd)-[:AWARDED_CONTRACT_TO {
         noticeId: line.noticeId,
         noticeType: line.noticeType,
