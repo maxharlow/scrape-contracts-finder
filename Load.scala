@@ -22,11 +22,11 @@ object Load extends App {
       s"LOAD CSV WITH HEADERS FROM 'file://${file.getAbsolutePath}' AS line" +
       """
       FOREACH(companyNumber IN (CASE WHEN line.awardeeCompanyNumber <> '' THEN [line.awardeeCompanyNumber] ELSE [] END) |
-      MERGE (gd:GovDepartment {name: line.orgName}) ON CREATE SET
-        gd.orgContact = line.orgContact
+      MERGE (c:Organisation {name: line.orgName}) ON CREATE SET
+        c.orgContact = line.orgContact
       MERGE (a:Organisation {companyNumber: companyNumber}) ON CREATE SET
         a.name = line.awardeeName
-      CREATE (gd)-[:AWARDED_CONTRACT_TO {
+      CREATE (c)-[:AWARDED_CONTRACT_TO {
         noticeId: line.noticeId,
         noticeType: line.noticeType,
         noticeState: line.noticeState,
@@ -44,10 +44,10 @@ object Load extends App {
       }]->(a)
       )
       FOREACH(name IN (CASE WHEN line.awardeeCompanyNumber = '' THEN [line.awardeeName] ELSE [] END) |
-      MERGE (gd:GovDepartment {name: line.orgName}) ON CREATE SET
-        gd.orgContact = line.orgContact
+      MERGE (c:Organisation {name: line.orgName}) ON CREATE SET
+        c.orgContact = line.orgContact
       MERGE (a:Organisation {name: name})
-      CREATE (gd)-[:AWARDED_CONTRACT_TO {
+      CREATE (c)-[:AWARDED_CONTRACT_TO {
         noticeId: line.noticeId,
         noticeType: line.noticeType,
         noticeState: line.noticeState,
