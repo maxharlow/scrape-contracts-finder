@@ -67,8 +67,9 @@ object Load extends App {
       """
     }
     println(query)
-    val result = Cypher(query).execute()
-    if (!result) println(s" => failed to add ${file.getPath}")
+    Try(Cypher(query).apply()) recover {
+      case e => println(s"FAILED TO LOAD AWARDS: \n${e.getMessage}")
+    }
   }
 
 }

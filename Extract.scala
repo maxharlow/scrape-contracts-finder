@@ -60,7 +60,7 @@ object Extract extends App {
     val response = http {
       url(s"http://www.contractsfinder.businesslink.gov.uk/public_files/Notices/Monthly/notices_${year}_${monthFormatted}.xml") OK as.String
     }
-    Await.ready(response, 1 minute)
+    Await.ready(response, 1.minute)
     response
   }
 
