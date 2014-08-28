@@ -1,4 +1,5 @@
 import java.io.File
+import scala.util.Try
 import org.anormcypher.{Cypher, Neo4jREST}
 
 object Load extends App {
