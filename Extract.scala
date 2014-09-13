@@ -56,6 +56,7 @@ object Extract extends App {
   }
 
   def retrieve(year: Int, month: Int): Future[String] = {
+    println(s"Now retrieving $year-$month...")
     val monthFormatted = "%02d".format(month)
     val response = http {
       url(s"http://www.contractsfinder.businesslink.gov.uk/public_files/Notices/Monthly/notices_${year}_${monthFormatted}.xml") OK as.String
