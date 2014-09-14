@@ -25,23 +25,26 @@ object Extract extends App {
     val awardsCsv = CSVWriter.open(new File("awards.csv"))
     val headers = List(
       "noticeId",
-      "referenceNumber",
-      "publishedDate",
-      "value",
-      "status",
-      "orgName",
-      "orgContact",
-      "title",
-      "description",
-      "awardeeName",
-      "awardeeCompanyNumber",
-      "awardDate",
+      "noticePublishedDate",
       "noticeType",
-      "region",
-      "noticeState",
-      "noticeStateChangeDate",
-      "classification",
-      "numDocs")
+      "noticeForm",
+      "noticeSystemState",
+      "noticeSystemStateChangeDate",
+      "noticeDocsNumber",
+      "contractTitle",
+      "contractDescription",
+      "contractLocation",
+      "contractClassifications",
+      "contractAwardDate",
+      "contractAwardValue",
+      "contractAwardReferenceNumber",
+      "buyerName",
+      "buyerGroupName",
+      "buyerGroupId",
+      "buyerContact",
+      "supplierName",
+      "supplierCompanyNumber",
+      "supplierContact")
     awardsCsv.writeRow(headers)
     for {
       year <- 2011 to 2014
@@ -78,29 +81,38 @@ object Extract extends App {
   def select(award: xml.Node): ListMap[String, String] = {
     ListMap(
       "noticeId" -> (award \ "SYSTEM" \ "NOTICE_ID").text,
-      "referenceNumber" -> (award \ "FD_CONTRACT_AWARD" \ "PROCEDURE_DEFINITION_CONTRACT_AWARD_NOTICE" \ "ADMINISTRATIVE_INFORMATION_CONTRACT_AWARD" \ "FILE_REFERENCE_NUMBER").text,
-      "publishedDate" -> (award \ "SYSTEM" \ "SYSTEM_PUBLISHED_DATE").text,
-      "value" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "TOTAL_FINAL_VALUE" \ "COSTS_RANGE_AND_CURRENCY_WITH_VAT_RATE" \ "VALUE_COST").text,
-      "status" -> (award \ "SYSTEM" \ "SYSTEM_NOTICE_STATE").text,
-      "orgName" -> (award \ "FD_CONTRACT_AWARD" \ "CONTRACTING_AUTHORITY_INFORMATION" \ "NAME_ADDRESSES_CONTACT_CONTRACT_AWARD" \ "CA_CE_CONCESSIONAIRE_PROFILE" \ "ORGANISATION").text,
-      "orgContact" -> (award \ "FD_CONTRACT_AWARD" \ "CONTRACTING_AUTHORITY_INFORMATION" \ "NAME_ADDRESSES_CONTACT_CONTRACT_AWARD" \ "CA_CE_CONCESSIONAIRE_PROFILE" \ "E_MAIL").text,
-      "title" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "TITLE_CONTRACT").text,
-      "description" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "SHORT_CONTRACT_DESCRIPTION").text,
-      "awardeeName" -> (award \ "FD_CONTRACT_AWARD" \ "AWARD_OF_CONTRACT" \ "ECONOMIC_OPERATOR_NAME_ADDRESS" \ "CONTACT_DATA_WITHOUT_RESPONSIBLE_NAME" \ "ORGANISATION").map(_.text).mkString(";"),
-      "awardeeCompanyNumber" -> (award \ "FD_CONTRACT_AWARD" \ "AWARD_OF_CONTRACT" \ "COMPANIES_HOUSE_URI_SUFFIX").map(_.text).mkString(";"),
-      "awardDate" -> {
+      "noticePublishedDate" -> (award \ "SYSTEM" \ "SYSTEM_PUBLISHED_DATE").text,
+      "noticeType" -> (award \ "SYSTEM" \ "NOTICE_TYPE_FRIENDLY_NAME").text,
+      "noticeForm" -> {
+        val formNumber = (award \ "@FORM").text.toInt
+        if (formNumber == 1 || formNumber == 2 || formNumber == 3) "Below-OJEU"
+        else if (formNumber == 90 || formNumber == 91) "Transparency"
+        else if (formNumber == 92 || formNumber == 93) "Subcontract"
+        else "UNKNOWN"
+      },
+      "noticeSystemState" -> (award \ "SYSTEM" \ "SYSTEM_NOTICE_STATE").text,
+      "noticeSystemStateChangeDate" -> (award \ "SYSTEM" \ "SYSTEM_NOTICE_STATE_CHANGE_DATE").text,
+      "noticeDocsNumber" -> (award \ "FD_CONTRACT_AWARD" \ "DOCUMENTS" \ "_").length.toString,
+      "contractTitle" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "TITLE_CONTRACT").text,
+      "contractDescription" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "SHORT_CONTRACT_DESCRIPTION").text,
+      "contractLocation" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "LOCATION_NUTS" \\ "p").head.text,
+      "contractClassifications" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "CPV" \\ "CPV_CODE").map(_ \ "@CODE" text).mkString(";"),
+      "contractAwardDate" -> {
         val datesValues = award \ "FD_CONTRACT_AWARD" \ "AWARD_OF_CONTRACT" \ "CONTRACT_AWARD_DATE"
         val dates = datesValues map { dateValue =>
-          if (dateValue.isEmpty) "" else (dateValue \ "DAY").text + "/" + (dateValue \ "MONTH").text + "/" + (dateValue \ "YEAR").text
+          if (dateValue.isEmpty) "" else (dateValue \ "YEAR").text + "-" + (dateValue \ "MONTH").text + "-" + (dateValue \ "DAY").text
         }
         dates.mkString(";")
       },
-      "noticeType" -> (award \ "SYSTEM" \ "NOTICE_TYPE_FRIENDLY_NAME").text,
-      "region" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "LOCATION_NUTS" \\ "p").head.text,
-      "noticeState" -> (award \ "SYSTEM" \ "NOTICE_STATE").text,
-      "noticeStateChangeDate" -> (award \ "SYSTEM" \ "SYSTEM_NOTICE_STATE_CHANGE_DATE").text,
-      "classification" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "CPV" \\ "CPV_CODE").map(_ \ "@CODE" text).mkString("|"),
-      "numDocs" -> (award \ "FD_CONTRACT_AWARD" \ "DOCUMENTS" \ "_").length.toString
+      "contractAwardValue" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "TOTAL_FINAL_VALUE" \ "COSTS_RANGE_AND_CURRENCY_WITH_VAT_RATE" \ "VALUE_COST").text,
+      "contractAwardReferenceNumber" -> (award \ "FD_CONTRACT_AWARD" \ "PROCEDURE_DEFINITION_CONTRACT_AWARD_NOTICE" \ "ADMINISTRATIVE_INFORMATION_CONTRACT_AWARD" \ "FILE_REFERENCE_NUMBER").text,
+      "buyerName" -> (award \ "FD_CONTRACT_AWARD" \ "CONTRACTING_AUTHORITY_INFORMATION" \ "NAME_ADDRESSES_CONTACT_CONTRACT_AWARD" \ "CA_CE_CONCESSIONAIRE_PROFILE" \ "ORGANISATION").text,
+      "buyerGroupName" -> (award \ "SYSTEM" \ "BUYER_GROUP_NAME").text,
+      "buyerGroupId" -> (award \ "SYSTEM" \ "BUYER_GROUP_ID").text,
+      "buyerContact" -> (award \ "FD_CONTRACT_AWARD" \ "CONTRACTING_AUTHORITY_INFORMATION" \ "NAME_ADDRESSES_CONTACT_CONTRACT_AWARD" \ "CA_CE_CONCESSIONAIRE_PROFILE" \ "E_MAIL").text,
+      "supplierName" -> (award \ "FD_CONTRACT_AWARD" \ "AWARD_OF_CONTRACT" \ "ECONOMIC_OPERATOR_NAME_ADDRESS" \ "CONTACT_DATA_WITHOUT_RESPONSIBLE_NAME" \ "ORGANISATION").map(_.text).mkString(";"),
+      "supplierCompanyNumber" -> (award \ "FD_CONTRACT_AWARD" \ "AWARD_OF_CONTRACT" \ "COMPANIES_HOUSE_URI_SUFFIX").map(_.text).mkString(";"),
+      "supplierContact" -> (award \ "FD_CONTRACT_AWARD" \ "AWARD_OF_CONTRACT" \ "ECONOMIC_OPERATOR_NAME_ADDRESS" \ "EMAIL").map(_.text).mkString(";")
     )
   }
 
