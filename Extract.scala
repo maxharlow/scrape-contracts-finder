@@ -37,7 +37,7 @@ object Extract extends App {
       "contractClassifications",
       "contractAwardDate",
       "contractAwardValue",
-      "contractAwardReferenceNumber",
+      "contractAwardReference",
       "buyerGroupId",
       "buyerGroupName",
       "buyerOrgName",
@@ -105,7 +105,7 @@ object Extract extends App {
         dates.mkString(";")
       },
       "contractAwardValue" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "TOTAL_FINAL_VALUE" \ "COSTS_RANGE_AND_CURRENCY_WITH_VAT_RATE" \ "VALUE_COST").text,
-      "contractAwardReferenceNumber" -> (award \ "FD_CONTRACT_AWARD" \ "PROCEDURE_DEFINITION_CONTRACT_AWARD_NOTICE" \ "ADMINISTRATIVE_INFORMATION_CONTRACT_AWARD" \ "FILE_REFERENCE_NUMBER").text,
+      "contractAwardReference" -> (award \ "FD_CONTRACT_AWARD" \ "PROCEDURE_DEFINITION_CONTRACT_AWARD_NOTICE" \ "ADMINISTRATIVE_INFORMATION_CONTRACT_AWARD" \ "FILE_REFERENCE_NUMBER").text,
       "buyerGroupId" -> (award \ "SYSTEM" \ "BUYER_GROUP_ID").text,
       "buyerGroupName" -> (award \ "SYSTEM" \ "BUYER_GROUP_NAME").text.trim,
       "buyerOrgName" -> (award \ "FD_CONTRACT_AWARD" \ "CONTRACTING_AUTHORITY_INFORMATION" \ "NAME_ADDRESSES_CONTACT_CONTRACT_AWARD" \ "CA_CE_CONCESSIONAIRE_PROFILE" \ "ORGANISATION").text.trim,
