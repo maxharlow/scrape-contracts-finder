@@ -23,7 +23,7 @@ object Extract extends App {
 
   def run() {
     val awardsCsv = CSVWriter.open(new File("awards.csv"))
-    val headers = List(
+    val awardsHeaders = List(
       "noticeId",
       "noticePublishedDate",
       "noticeType",
@@ -45,15 +45,15 @@ object Extract extends App {
       "supplierName",
       "supplierCompanyNumber",
       "supplierContact")
-    awardsCsv.writeRow(headers)
+    awardsCsv writeRow awardsHeaders
     for {
       year <- 2011 to 2014
       month <- 1 to 12
     }
     yield for (data <- retrieve(year, month))
     yield for (item <- process(data)) {
-      val selected = select(item)
-      awardsCsv.writeRow(selected.values.toSeq)
+      val awards = selectAwards(item)
+      awardsCsv writeRow awards.values.toSeq
     }
     awardsCsv.close()
   }
@@ -78,7 +78,7 @@ object Extract extends App {
     yield awards
   }
 
-  def select(award: xml.Node): ListMap[String, String] = {
+  def selectAwards(award: xml.Node): ListMap[String, String] = {
     ListMap(
       "noticeId" -> (award \ "SYSTEM" \ "NOTICE_ID").text,
       "noticePublishedDate" -> (award \ "SYSTEM" \ "SYSTEM_PUBLISHED_DATE").text,
@@ -96,7 +96,7 @@ object Extract extends App {
       "contractTitle" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "TITLE_CONTRACT").text.trim,
       "contractDescription" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "SHORT_CONTRACT_DESCRIPTION").text.trim,
       "contractLocation" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "LOCATION_NUTS" \\ "p").head.text,
-      "contractClassifications" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "CPV" \\ "CPV_CODE").map(_ \ "@CODE" text).mkString(";"),
+      "contractClassifications" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "DESCRIPTION_AWARD_NOTICE_INFORMATION" \ "CPV" \\ "CPV_CODE").map(_.\("@CODE").text).mkString(";"),
       "contractAwardDate" -> {
         val datesValues = award \ "FD_CONTRACT_AWARD" \ "AWARD_OF_CONTRACT" \ "CONTRACT_AWARD_DATE"
         val dates = datesValues map { dateValue =>
