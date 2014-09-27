@@ -27,7 +27,7 @@ object Extract extends App {
     val awardsHeaders = List(
       "noticeId",
       "noticePublishedDate",
-      "noticeType",
+      "noticeGroup",
       "noticeForm",
       "noticeSystemState",
       "noticeSystemStateChangeDate",
@@ -50,7 +50,8 @@ object Extract extends App {
     val tendersHeaders = List(
       "noticeId",
       "noticePublishedDate",
-      "noticeType",
+      "noticeState",
+      "noticeGroup",
       "noticeForm",
       "noticeSystemState",
       "noticeSystemStateChangeDate",
@@ -107,7 +108,7 @@ object Extract extends App {
     ListMap(
       "noticeId" -> (award \ "SYSTEM" \ "NOTICE_ID").text,
       "noticePublishedDate" -> (award \ "SYSTEM" \ "SYSTEM_PUBLISHED_DATE").text,
-      "noticeType" -> (award \ "SYSTEM" \ "NOTICE_TYPE_FRIENDLY_NAME").text,
+      "noticeGroup" -> (award \ "SYSTEM" \ "NOTICE_TYPE_FRIENDLY_NAME").text,
       "noticeForm" -> {
         val formNumber = (award \ "@FORM").text.toInt
         if (formNumber == 1 || formNumber == 2 || formNumber == 3) "Below-OJEU"
@@ -145,7 +146,8 @@ object Extract extends App {
     ListMap(
       "noticeId" -> (tender \ "SYSTEM" \ "NOTICE_ID").text,
       "noticePublishedDate" -> (tender \ "SYSTEM" \ "SYSTEM_PUBLISHED_DATE").text,
-      "noticeType" -> (tender \ "SYSTEM" \ "NOTICE_TYPE_FRIENDLY_NAME").text,
+      "noticeState" -> (tender \ "SYSTEM" \ "NOTICE_STATE").text,
+      "noticeGroup" -> (tender \ "SYSTEM" \ "NOTICE_TYPE_FRIENDLY_NAME").text,
       "noticeForm" -> {
         val formNumber = (tender \ "@FORM").text.toInt
         if (formNumber == 1 || formNumber == 2 || formNumber == 3) "Below-OJEU"
@@ -160,6 +162,11 @@ object Extract extends App {
       "contractDescription" -> (tender \ "FD_CONTRACT" \ "OBJECT_CONTRACT_INFORMATION" \ "DESCRIPTION_CONTRACT_INFORMATION" \ "SHORT_CONTRACT_DESCRIPTION").text.trim,
       "contractLocation" -> (tender \ "FD_CONTRACT" \ "OBJECT_CONTRACT_INFORMATION" \ "DESCRIPTION_CONTRACT_INFORMATION" \ "LOCATION_NUTS" \\ "p").head.text,
       "contractClassifications" -> (tender \ "FD_CONTRACT" \ "OBJECT_CONTRACT_INFORMATION" \ "DESCRIPTION_CONTRACT_INFORMATION" \ "CPV" \\ "CPV_CODE").map(_.\("@CODE").text).mkString(";"),
+      "contractDeadlineDate" -> {
+        val dateValue = tender \ "FD_CONTRACT" \ "PROCEDURE_DEFINITION_CONTRACT_NOTICE" \ "ADMINISTRATIVE_INFORMATION_CONTRACT_NOTICE" \ "RECEIPT_LIMIT_DATE"
+        (dateValue \ "YEAR").text + "-" + (dateValue \ "MONTH").text + "-" + (dateValue \ "DAY").text
+      },
+      "contractDeadlineDateFor" -> (tender \ "FD_CONTRACT" \ "PROCEDURE_DEFINITION_CONTRACT_NOTICE" \ "ADMINISTRATIVE_INFORMATION_CONTRACT_NOTICE" \ "RECEIPT_LIMIT_DATE" \ "RECEIPT_LIMIT_DATE_FOR").text,
       "contractValueFrom" -> (tender \ "FD_CONTRACT" \ "OBJECT_CONTRACT_INFORMATION" \ "QUANTITY_SCOPE" \ "NATURE_QUANTITY_SCOPE" \ "COSTS_RANGE_AND_CURRENCY" \ "RANGE_VALUE_COST" \ "LOW_VALUE").text,
       "contractValueTo" -> (tender \ "FD_CONTRACT" \ "OBJECT_CONTRACT_INFORMATION" \ "QUANTITY_SCOPE" \ "NATURE_QUANTITY_SCOPE" \ "COSTS_RANGE_AND_CURRENCY" \ "RANGE_VALUE_COST" \ "HIGH_VALUE").text,
       "buyerReference" -> (tender \ "FD_CONTRACT" \ "PROCEDURE_DEFINITION_CONTRACT_NOTICE" \ "ADMINISTRATIVE_INFORMATION_CONTRACT_NOTICE" \ "FILE_REFERENCE_NUMBER").text,
