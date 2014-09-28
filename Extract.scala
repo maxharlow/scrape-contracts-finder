@@ -60,6 +60,8 @@ object Extract extends App {
       "contractDescription",
       "contractLocation",
       "contractClassifications",
+      "contractDeadlineDate",
+      "contractDeadlineDateFor",
       "contractValueFrom",
       "contractValueTo",
       "buyerReference",
