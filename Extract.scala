@@ -166,7 +166,7 @@ object Extract extends App {
       "contractClassifications" -> (tender \ "FD_CONTRACT" \ "OBJECT_CONTRACT_INFORMATION" \ "DESCRIPTION_CONTRACT_INFORMATION" \ "CPV" \\ "CPV_CODE").map(_.\("@CODE").text).mkString(";"),
       "contractDeadlineDate" -> {
         val dateValue = tender \ "FD_CONTRACT" \ "PROCEDURE_DEFINITION_CONTRACT_NOTICE" \ "ADMINISTRATIVE_INFORMATION_CONTRACT_NOTICE" \ "RECEIPT_LIMIT_DATE"
-        (dateValue \ "YEAR").text + "-" + (dateValue \ "MONTH").text + "-" + (dateValue \ "DAY").text
+        if ((dateValue \ "YEAR").text.isEmpty) "" else (dateValue \ "YEAR").text + "-" + (dateValue \ "MONTH").text + "-" + (dateValue \ "DAY").text
       },
       "contractDeadlineDateFor" -> (tender \ "FD_CONTRACT" \ "PROCEDURE_DEFINITION_CONTRACT_NOTICE" \ "ADMINISTRATIVE_INFORMATION_CONTRACT_NOTICE" \ "RECEIPT_LIMIT_DATE" \ "RECEIPT_LIMIT_DATE_FOR").text,
       "contractValueFrom" -> (tender \ "FD_CONTRACT" \ "OBJECT_CONTRACT_INFORMATION" \ "QUANTITY_SCOPE" \ "NATURE_QUANTITY_SCOPE" \ "COSTS_RANGE_AND_CURRENCY" \ "RANGE_VALUE_COST" \ "LOW_VALUE").text,
