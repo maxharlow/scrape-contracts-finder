@@ -7,17 +7,9 @@ import dispatch._
 import dispatch.Defaults._
 import com.github.tototoshi.csv.CSVWriter
 
-object Extract extends App {
+object Contracts extends App {
 
   val http = Http.configure(_ setFollowRedirects true)
-
-  println("""
-    ,---,
-    |___|    .        ___ __   _   _  ___  _  __
-    /``\ |---^-,_      |  |_) /_\ / `  |  / \ |_)
-   ( () )  ( o )||     |  | \ | | \_,  |  \_/ | \
-    \__/````\_/  \
-  """)
 
   run()
 
