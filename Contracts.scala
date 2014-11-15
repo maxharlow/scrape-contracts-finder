@@ -124,7 +124,7 @@ object Contracts extends App {
         }
         dates.mkString(";")
       },
-      "contractAwardValue" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "TOTAL_FINAL_VALUE" \ "COSTS_RANGE_AND_CURRENCY_WITH_VAT_RATE" \ "VALUE_COST").text,
+      "contractAwardValue" -> (award \ "FD_CONTRACT_AWARD" \ "OBJECT_CONTRACT_INFORMATION_CONTRACT_AWARD_NOTICE" \ "TOTAL_FINAL_VALUE" \ "COSTS_RANGE_AND_CURRENCY_WITH_VAT_RATE" \ "VALUE_COST").text.replaceAll(" ", ""),
       "buyerReference" -> (award \ "FD_CONTRACT_AWARD" \ "PROCEDURE_DEFINITION_CONTRACT_AWARD_NOTICE" \ "ADMINISTRATIVE_INFORMATION_CONTRACT_AWARD" \ "FILE_REFERENCE_NUMBER").text,
       "buyerGroupId" -> (award \ "SYSTEM" \ "BUYER_GROUP_ID").text,
       "buyerGroupName" -> (award \ "SYSTEM" \ "BUYER_GROUP_NAME").text.trim,
