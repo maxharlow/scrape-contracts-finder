@@ -14,8 +14,8 @@ object Contracts extends App {
   run()
 
   def run() {
-    val awardsCsv = CSVWriter.open(new File("awards.csv"))
-    val tendersCsv = CSVWriter.open(new File("tenders.csv"))
+    val awardsCsv = CSVWriter.open(new File("contracts-awards.csv"))
+    val tendersCsv = CSVWriter.open(new File("contracts-tenders.csv"))
     val awardsHeaders = List(
       "noticeId",
       "noticePublishedDate",
