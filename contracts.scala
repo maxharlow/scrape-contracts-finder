@@ -1,96 +1,102 @@
-import java.io.File
 import scala.xml.XML
 import scala.collection.immutable.ListMap
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import dispatch._
-import dispatch.Defaults._
+import scala.concurrent.{Future, Await, ExecutionContext}
+import scala.concurrent.duration.Duration
+import dispatch.{Http, enrichFuture, url, as}
 import com.github.tototoshi.csv.CSVWriter
 
 object Contracts extends App {
 
+  implicit val context = ExecutionContext.global
+
   val http = Http.configure(_ setFollowRedirects true)
+
+  val headersAwards = List(
+    "noticeId",
+    "noticePublishedDate",
+    "noticeGroup",
+    "noticeForm",
+    "noticeSystemState",
+    "noticeSystemStateChangeDate",
+    "noticeDocsNumber",
+    "contractTitle",
+    "contractDescription",
+    "contractLocation",
+    "contractClassifications",
+    "contractAwardDate",
+    "contractAwardValue",
+    "contractAwardReference",
+    "buyerReference",
+    "buyerGroupId",
+    "buyerGroupName",
+    "buyerOrgName",
+    "buyerContact",
+    "supplierName",
+    "supplierCompanyNumber",
+    "supplierContact")
+
+  val headersTenders = List(
+    "noticeId",
+    "noticePublishedDate",
+    "noticeState",
+    "noticeGroup",
+    "noticeForm",
+    "noticeSystemState",
+    "noticeSystemStateChangeDate",
+    "noticeDocsNumber",
+    "contractTitle",
+    "contractDescription",
+    "contractLocation",
+    "contractClassifications",
+    "contractDeadlineDate",
+    "contractDeadlineDateFor",
+    "contractValueFrom",
+    "contractValueTo",
+    "buyerReference",
+    "buyerGroupId",
+    "buyerGroupName",
+    "buyerOrgName",
+    "buyerContact"
+  )
 
   run()
 
   def run() {
-    val awardsCsv = CSVWriter.open(new File("contracts-awards.csv"))
-    val tendersCsv = CSVWriter.open(new File("contracts-tenders.csv"))
-    val awardsHeaders = List(
-      "noticeId",
-      "noticePublishedDate",
-      "noticeGroup",
-      "noticeForm",
-      "noticeSystemState",
-      "noticeSystemStateChangeDate",
-      "noticeDocsNumber",
-      "contractTitle",
-      "contractDescription",
-      "contractLocation",
-      "contractClassifications",
-      "contractAwardDate",
-      "contractAwardValue",
-      "contractAwardReference",
-      "buyerReference",
-      "buyerGroupId",
-      "buyerGroupName",
-      "buyerOrgName",
-      "buyerContact",
-      "supplierName",
-      "supplierCompanyNumber",
-      "supplierContact")
-    val tendersHeaders = List(
-      "noticeId",
-      "noticePublishedDate",
-      "noticeState",
-      "noticeGroup",
-      "noticeForm",
-      "noticeSystemState",
-      "noticeSystemStateChangeDate",
-      "noticeDocsNumber",
-      "contractTitle",
-      "contractDescription",
-      "contractLocation",
-      "contractClassifications",
-      "contractDeadlineDate",
-      "contractDeadlineDateFor",
-      "contractValueFrom",
-      "contractValueTo",
-      "buyerReference",
-      "buyerGroupId",
-      "buyerGroupName",
-      "buyerOrgName",
-      "buyerContact"
-    )
-    awardsCsv writeRow awardsHeaders
-    tendersCsv writeRow tendersHeaders
+    val csvAwards = CSVWriter.open("contracts-awards.csv")
+    val csvTenders = CSVWriter.open("contracts-tenders.csv")
+    csvAwards.writeRow(headersAwards)
+    csvTenders.writeRow(headersTenders)
+
+    def writeAward(record: Map[String, String]): Unit = csvAwards.writeRow(record.values.toSeq)
+    def writeTender(record: Map[String, String]): Unit = csvTenders.writeRow(record.values.toSeq)
+
     for {
       year <- 2011 to 2014
       month <- 1 to 12
     }
-    yield for (data <- retrieve(year, month))
-    yield for (notice <- process(data)) {
-      notice.label match {
-        case "CONTRACT_AWARD" => awardsCsv writeRow selectAward(notice).values.toSeq
-        case "CONTRACT" => tendersCsv writeRow selectTender(notice).values.toSeq
-        case "PRIOR_INFORMATION" => // ignore for now
-      }
+    yield for (retrieved <- retrieve(locate(year, month)))
+    yield for (notice <- load(retrieved)) notice.label match {
+      case "CONTRACT_AWARD" => writeAward(selectAward(notice))
+      case "CONTRACT" => writeTender(selectTender(notice))
+      case "PRIOR_INFORMATION" => // ignore for now
     }
-    awardsCsv.close()
-    tendersCsv.close()
+
+    csvAwards.close()
+    csvTenders.close()
   }
 
-  def retrieve(year: Int, month: Int): Future[String] = {
-    println(s"Now retrieving $year-$month...")
+  def locate(year: Int, month: Int): String = {
     val monthFormatted = "%02d".format(month)
-    val response = http {
-      url(s"http://www.contractsfinder.businesslink.gov.uk/public_files/Notices/Monthly/notices_${year}_${monthFormatted}.xml") OK as.String
-    }
-    Await.ready(response, 1.minute)
+    return s"http://www.contractsfinder.businesslink.gov.uk/public_files/Notices/Monthly/notices_${year}_${monthFormatted}.xml"
+  }
+
+  def retrieve(location: String): Future[String] = {
+    val response = http(url(location) OK as.String)
+    Await.ready(response, Duration.Inf)
     response
   }
 
-  def process(data: String): Seq[xml.Node] = {
+  def load(data: String): Seq[xml.Node] = {
     for {
       xml <- XML.loadString(data.dropWhile(_ != '<'))
       notices <- xml \ "NOTICES" \ "_"
