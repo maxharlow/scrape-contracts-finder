@@ -25,7 +25,6 @@ object Contracts extends App {
     "contractClassifications",
     "contractAwardDate",
     "contractAwardValue",
-    "contractAwardReference",
     "buyerReference",
     "buyerGroupId",
     "buyerGroupName",
