@@ -70,15 +70,12 @@ object Contracts extends App {
     def writeAward(record: Map[String, String]): Unit = csvAwards.writeRow(record.values.toSeq)
     def writeTender(record: Map[String, String]): Unit = csvTenders.writeRow(record.values.toSeq)
 
-    for {
-      year <- 2011 to 2014
-      month <- 1 to 12
-    }
-    yield for (retrieved <- retrieve(locate(year, month)))
-    yield for (notice <- load(retrieved)) notice.label match {
-      case "CONTRACT_AWARD" => writeAward(selectAward(notice))
-      case "CONTRACT" => writeTender(selectTender(notice))
-      case "PRIOR_INFORMATION" => // ignore for now
+    for (year <- 2011 to 2014; month <- 1 to 12) {
+      load(retrieve(locate(year, month))) foreach {
+        case notice if notice.label == "CONTRACT_AWARD" => writeAward(selectAward(notice))
+        case notice if notice.label == "CONTRACT" => writeTender(selectTender(notice))
+        case notice if notice.label == "PRIOR_INFORMATION" => // ignore for now
+      }
     }
 
     csvAwards.close()
@@ -90,14 +87,13 @@ object Contracts extends App {
     return s"http://www.contractsfinder.businesslink.gov.uk/public_files/Notices/Monthly/notices_${year}_${monthFormatted}.xml"
   }
 
-  def retrieve(location: String): Future[String] = {
-    val response = http(url(location) OK as.String)
-    Await.ready(response, Duration.Inf)
-    response
+  def retrieve(location: String): String = {
+    http(url(location) OK as.String).apply()
   }
 
   def load(data: String): Seq[xml.Node] = {
-    for {
+    if (data == "Error processing the request") Nil
+    else for {
       xml <- XML.loadString(data.dropWhile(_ != '<'))
       notices <- xml \ "NOTICES" \ "_"
     }
