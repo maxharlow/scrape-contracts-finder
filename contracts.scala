@@ -93,7 +93,7 @@ object Contracts extends App {
   def load(data: String): Seq[xml.Node] = {
     if (data == "Error processing the request") Nil
     else for {
-      xml <- XML.loadString(data.dropWhile(_ != '<'))
+      xml <- XML.load(new java.io.ByteArrayInputStream(data.getBytes("ISO-8859-1")))
       notices <- xml \ "NOTICES" \ "_"
     }
     yield notices
