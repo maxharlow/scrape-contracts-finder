@@ -3,6 +3,7 @@ import scala.xml.XML
 import scala.collection.immutable.ListMap
 import scala.concurrent.{Future, Await, ExecutionContext}
 import scala.concurrent.duration.Duration
+import org.apache.commons.lang3.StringEscapeUtils
 import dispatch.{Http, enrichFuture, url, as}
 import com.github.tototoshi.csv.CSVWriter
 
@@ -72,8 +73,8 @@ object Contracts extends App {
 
     for (year <- 2011 to 2014; month <- 1 to 12) {
       load(retrieve(locate(year, month))) foreach {
-        case notice if notice.label == "CONTRACT_AWARD" => writeAward(selectAward(notice))
-        case notice if notice.label == "CONTRACT" => writeTender(selectTender(notice))
+        case notice if notice.label == "CONTRACT_AWARD" => writeAward(selectAward(notice).mapValues(StringEscapeUtils.unescapeXml))
+        case notice if notice.label == "CONTRACT" => writeTender(selectTender(notice).mapValues(StringEscapeUtils.unescapeXml))
         case notice if notice.label == "PRIOR_INFORMATION" => // ignore for now
       }
     }
