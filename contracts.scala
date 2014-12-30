@@ -1,3 +1,4 @@
+import java.io.ByteArrayInputStream
 import scala.xml.XML
 import scala.collection.immutable.ListMap
 import scala.concurrent.{Future, Await, ExecutionContext}
@@ -93,7 +94,7 @@ object Contracts extends App {
   def load(data: String): Seq[xml.Node] = {
     if (data == "Error processing the request") Nil
     else for {
-      xml <- XML.load(new java.io.ByteArrayInputStream(data.getBytes("ISO-8859-1")))
+      xml <- XML.load(new ByteArrayInputStream(data.getBytes("ISO-8859-1")))
       notices <- xml \ "NOTICES" \ "_"
     }
     yield notices
