@@ -1,0 +1,10 @@
+{
+    "name": "scrape-contracts",
+    "private": true,
+    "dependencies": {
+        "highland": "2.10.x",
+        "request": "2.79.x",
+        "retry-me": "1.0.x",
+        "csv-write-stream": "2.0.x"
+    }
+}
