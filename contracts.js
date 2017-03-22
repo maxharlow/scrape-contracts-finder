@@ -24,17 +24,20 @@ const location = {
 function pages(response) {
     const pages = JSON.parse(response.body).maxPage
     return Array.from({ length: pages }).map((_, i) => {
+        const page = i + 1
         return {
             uri: 'https://www.contractsfinder.service.gov.uk/Published/Notices/OCDS/Search',
             qs: {
                 'stages': 'award',
-                'page': i + 1
-            }
+                'page': page
+            },
+            page
         }
     })
 }
 
 function results(response) {
+    console.log('Processing page ' + response.request.page + '...')
     const data = JSON.parse(response.body)
     return data.results.map(result => {
         return result.releases.map(release => {
