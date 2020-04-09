@@ -31,12 +31,14 @@ async function request(location) {
 }
 
 function paginate(response) {
+    const startDate = '2020-01-01'
     const pages = response.data.maxPage
     console.log(`Found ${pages} pages.`)
     return Array.from({ length: pages }).map((_, i) => {
         const page = i + 1
+        const url = `https://www.contractsfinder.service.gov.uk/Published/Notices/OCDS/Search?stages=award&publishedFrom=${startDate}&page=${page}`
         return {
-            url: `https://www.contractsfinder.service.gov.uk/Published/Notices/OCDS/Search?stages=award&page=${page}`,
+            url,
             passthrough: { page }
         }
     })
