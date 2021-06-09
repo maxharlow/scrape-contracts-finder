@@ -1,13 +1,13 @@
 {
-    "name": "scrape-contracts",
+    "name": "scrape-contracts-finder",
     "private": true,
+    "type": "module",
     "dependencies": {
-        "axios": "0.18.x",
+        "axios": "0.21.x",
         "axios-retry": "3.1.x",
         "ent": "2.2.x",
-        "fs-extra": "8.1.x",
-        "ix": "2.5.x",
-        "papaparse": "5.0.x",
-        "progress": "2.0.x"
+        "fs-extra": "10.0.x",
+        "luxon": "1.27.x",
+        "scramjet": "4.35.x"
     }
 }
