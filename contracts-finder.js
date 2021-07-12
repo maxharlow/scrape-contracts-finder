@@ -76,7 +76,7 @@ function awards(response) {
             awardSupplierValue: award.supplierAwardedValue, // what is this?
             awardSupplierName: Ent.decode(award.supplierName),
             awardSupplierCompanyDunsNumber: award.dunsNumber?.match(/^0+$/) ? null : award.dunsNumber,
-            awardSupplierAddress: award.supplierAddress.replace(/ ?\r?\n+/g, ', '),
+            awardSupplierAddress: Ent.decode(award.supplierAddress).replace(/\t/g, '').replace(/ ?\r?\n+/g, ', ').replace(/,,+/g, ','),
             awardProcedureType: award.awardedProcedureType
         }
     })
