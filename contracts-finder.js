@@ -27,9 +27,10 @@ async function fetch(location) {
 }
 
 function dates(from, a = []) {
-    const date = Luxon.DateTime.fromFormat(from, 'yyyy-MM-dd')
-    if (date >= Luxon.DateTime.now()) return a
-    const datePlusOne = date.plus({ days: 1 }).toFormat('yyyy-MM-dd')
+    const day = Luxon.DateTime.fromFormat(from, 'yyyy-MM-dd')
+    if (day >= Luxon.DateTime.now()) return a
+    const date = day.toFormat('yyyy-MM-dd')
+    const datePlusOne = day.plus({ days: 1 }).toFormat('yyyy-MM-dd')
     const request = {
         method: 'POST',
         url: 'https://www.contractsfinder.service.gov.uk/api/rest/2/search_notices/json',
@@ -39,8 +40,8 @@ function dates(from, a = []) {
         data: {
             searchCriteria: {
                 statuses: 'Awarded',
-                publishedFrom: date.toFormat('yyyy-MM-dd'),
-                publishedTo: datePlusOne
+                publishedFrom: date,
+                publishedTo: date
             },
             size: 1000
         }
