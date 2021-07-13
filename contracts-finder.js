@@ -62,7 +62,7 @@ function awards(response) {
             noticeURL: `https://www.contractsfinder.service.gov.uk/notice/${notice.id}`,
             noticeFrom: Ent.decode(notice.organisationName),
             noticeTitle: Ent.decode(notice.title),
-            noticeDescription: Ent.decode(notice.description).replace(/\r?\n+/g, ' ').replace(/ +/g, ' '),
+            noticeDescription: Ent.decode(notice.description).replace(/\r?\n+/g, ' ').replace(/\s+/g, ' '),
             noticeType: notice.type,
             noticeStatus: notice.status,
             noticeValueLow: notice.valueLow,
@@ -77,7 +77,7 @@ function awards(response) {
             awardSupplierValue: award.supplierAwardedValue, // what is this?
             awardSupplierName: Ent.decode(award.supplierName),
             awardSupplierCompanyDunsNumber: award.dunsNumber?.match(/^0+$/) ? null : award.dunsNumber,
-            awardSupplierAddress: Ent.decode(award.supplierAddress).replace(/\t/g, '').replace(/ ?\r?\n+/g, ', ').replace(/,,+/g, ','),
+            awardSupplierAddress: Ent.decode(award.supplierAddress).replace(/ ?\r?\n+/g, ', ').replace(/\s+/g, ' ').replace(/,,+/g, ','),
             awardProcedureType: award.awardedProcedureType
         }
     })
