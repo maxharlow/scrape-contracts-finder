@@ -84,7 +84,7 @@ function awards(response) {
 }
 
 async function run() {
-    Scramjet.DataStream.from(dates('2019-01-01'))
+    Scramjet.DataStream.from(dates('2018-01-01'))
         .map(fetch)
         .flatMap(detail)
         .map(fetch)
