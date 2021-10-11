@@ -3,11 +3,11 @@
     "private": true,
     "type": "module",
     "dependencies": {
-        "axios": "0.21.x",
-        "axios-retry": "3.1.x",
+        "axios": "0.22.x",
+        "axios-retry": "3.2.x",
         "ent": "2.2.x",
         "fs-extra": "10.0.x",
-        "luxon": "1.27.x",
-        "scramjet": "4.35.x"
+        "luxon": "2.0.x",
+        "scramjet": "4.36.x"
     }
 }
