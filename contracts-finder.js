@@ -12,11 +12,11 @@ async function fetch(location) {
         retries: 10,
         shouldResetTimeout: true,
         retryCondition: e => {
-            return !e.response || e.response.status >= 500
+            return !e.response || e.response.status >= 500 || e.response.data.awards?.length === 0
         },
         retryDelay: (number, e) => {
-            if (number === 1) console.log(`Received code ${e.code}: ${url} (retrying...)`)
-            else console.log(`Received code ${e.code}: ${url} (retry ${number}...)`)
+            if (number === 1) console.log(`Received code ${e.code || e.response?.status}: ${url} (retrying...)`)
+            else console.log(`Received code ${e.code || e.response?.status}: ${url} (retry ${number}...)`)
             return 5 * 1000
         }
     })
