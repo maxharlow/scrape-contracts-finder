@@ -75,9 +75,9 @@ function awards(response) {
             awardID: award.id,
             awardValue: award.value,
             awardSupplierValue: award.supplierAwardedValue, // what is this?
-            awardSupplierName: Ent.decode(award.supplierName),
+            awardSupplierName: award.supplierName ? Ent.decode(award.supplierName) : null,
             awardSupplierCompanyDunsNumber: award.dunsNumber?.match(/^0+$/) ? null : award.dunsNumber,
-            awardSupplierAddress: Ent.decode(award.supplierAddress).replace(/ ?\r?\n+/g, ', ').replace(/\s+/g, ' ').replace(/,,+/g, ','),
+            awardSupplierAddress: award.supplierAddress ? Ent.decode(award.supplierAddress).replace(/ ?\r?\n+/g, ', ').replace(/\s+/g, ' ').replace(/,,+/g, ',') : null,
             awardProcedureType: award.awardedProcedureType
         }
     })
