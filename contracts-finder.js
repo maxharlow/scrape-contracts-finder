@@ -1,28 +1,48 @@
+import Crypto from 'crypto'
 import FSExtra from 'fs-extra'
 import Luxon from 'luxon'
 import Axios from 'axios'
 import AxiosRetry from 'axios-retry'
+import AxiosRateLimit from 'axios-rate-limit'
 import Ent from 'ent'
 import Scramjet from 'scramjet'
 
-async function fetch(location) {
-    const url = typeof location === 'object' ? location.url : location
+function fetcher() {
     const instance = Axios.create({ timeout: 30 * 1000 })
     AxiosRetry(instance, {
-        retries: 10,
+        retries: 100,
         shouldResetTimeout: true,
         retryCondition: e => {
-            return !e.response || e.response.status >= 500 || e.response.data.awards?.length === 0
+            return !e.response || e.response.status === 403 || e.response.status >= 500 || e.response.data.awards?.length === 0
         },
         retryDelay: (number, e) => {
+            const url = e.config.url + (e.config.data ? ' ' + e.config.data.replace(/"/g, '') : '')
             if (number === 1) console.log(`Received code ${e.code || e.response?.status}: ${url} (retrying...)`)
             else console.log(`Received code ${e.code || e.response?.status}: ${url} (retry ${number}...)`)
             return 5 * 1000
         }
     })
-    const response = await instance(location)
-    return {
-        data: response.data
+    AxiosRateLimit(instance, {
+        maxRequests: 5, // per second
+        perMilliseconds: 1 * 1000
+    })
+    return async location => {
+        const url = typeof location === 'object' ? location.url : location
+        const query = location.data ? ' ' + JSON.stringify(location.data).replace(/"/g, '') : ''
+        await FSExtra.ensureDir('.scrape-cache')
+        const hash = Crypto.createHash('md5').update(JSON.stringify(location)).digest('hex')
+        const exists = await FSExtra.pathExists(`.scrape-cache/${hash}`)
+        if (exists) {
+            console.log(`Using cache (${hash}) for ${url}${query}...`)
+            return FSExtra.readJson(`.scrape-cache/${hash}`)
+        }
+        console.log(`Fetching ${url}${query}...`)
+        const response = await instance(location)
+        const output = {
+            data: response.data
+        }
+        await FSExtra.writeJson(`.scrape-cache/${hash}`, output)
+        return output
     }
 }
 
@@ -56,6 +76,20 @@ function detail(response) {
 }
 
 function awards(response) {
+    const cleanAddress = address => {
+        return Ent.decode(address)
+            .trim()
+            .replace(/(\t+| ?\r?\n ?)/g, ', ') // tabs and newlines become commas plus spaces
+            .replace(/ +/g, ' ') // collapse multiple spaces
+            .replace(/ +,/g, ',') // spaces preceding commas get removed
+            .replace(/,+/g, ',') // remove repeated commas
+            .replace(/,(?=[^ ])/g, ', ') // ensure commas are followed by a space
+            .replace(/[\.;], /g, ', ') // ensure commas aren't preceded by a full-stop or a semicolon
+            .replace(/"/g, '') // remove all quotes
+            .replace(/^, /, '') // remove commas at the start
+            .replace(/[\.,]$/g, '') // remove full stops or commas at the end
+            .trim()
+    }
     const notice = response.data.notice
     return response.data.awards.map(award => {
         return {
@@ -77,14 +111,15 @@ function awards(response) {
             awardSupplierValue: award.supplierAwardedValue, // what is this?
             awardSupplierName: award.supplierName ? Ent.decode(award.supplierName) : null,
             awardSupplierCompanyDunsNumber: award.dunsNumber?.match(/^0+$/) ? null : award.dunsNumber,
-            awardSupplierAddress: award.supplierAddress ? Ent.decode(award.supplierAddress).replace(/ ?\r?\n+/g, ', ').replace(/\s+/g, ' ').replace(/,,+/g, ',') : null,
+            awardSupplierAddress: award.supplierAddress ? cleanAddress(award.supplierAddress) : null,
             awardProcedureType: award.awardedProcedureType
         }
     })
 }
 
 async function run() {
-    Scramjet.DataStream.from(dates('2018-01-01'))
+    const fetch = fetcher()
+    Scramjet.DataStream.from(dates('2015-01-01'))
         .map(fetch)
         .flatMap(detail)
         .map(fetch)
