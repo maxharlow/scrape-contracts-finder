@@ -110,6 +110,8 @@ function awards(response) {
             awardValue: award.value,
             awardSupplierValue: award.supplierAwardedValue, // what is this?
             awardSupplierName: award.supplierName ? Ent.decode(award.supplierName) : null,
+            awardSupplierReference: award.reference,
+            awardSupplierReferenceType: award.referenceType,
             awardSupplierCompanyDunsNumber: award.dunsNumber?.match(/^0+$/) ? null : award.dunsNumber,
             awardSupplierAddress: award.supplierAddress ? cleanAddress(award.supplierAddress) : null,
             awardProcedureType: award.awardedProcedureType
