@@ -3,12 +3,12 @@
     "private": true,
     "type": "module",
     "dependencies": {
-        "axios": "0.22.x",
+        "axios": "0.26.x",
         "axios-rate-limit": "1.3.x",
         "axios-retry": "3.2.x",
         "ent": "2.2.x",
-        "fs-extra": "10.0.x",
-        "luxon": "2.0.x",
+        "fs-extra": "10.1.x",
+        "luxon": "2.3.x",
         "scramjet": "4.36.x"
     }
 }
