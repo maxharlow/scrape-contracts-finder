@@ -94,6 +94,10 @@ function awards(response) {
     return response.data.awards.map(award => {
         return {
             noticeURL: `https://www.contractsfinder.service.gov.uk/notice/${notice.id}`,
+            noticeIdentifier: notice.identifier,
+            noticeParentURL: notice.parentId ? `https://www.contractsfinder.service.gov.uk/notice/${notice.parentId}` : null,
+            noticeParentIdentifier: notice.parentIdentifier,
+            noticeLinkReason: notice.linkReason,
             noticeFrom: Ent.decode(notice.organisationName),
             noticeTitle: Ent.decode(notice.title),
             noticeDescription: Ent.decode(notice.description).replace(/\r?\n+/g, ' ').replace(/\s+/g, ' '),
